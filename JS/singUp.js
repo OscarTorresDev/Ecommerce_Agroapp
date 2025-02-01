@@ -1,35 +1,35 @@
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.querySelector(".form-register");
-  const btnSubmit = document.querySelector(".btn-regiter");
+  const btnSubmit = document.querySelector(".btn-register");
   const aceptTerms = document.getElementById("acept");
   const inputs = form.querySelectorAll("input:not([type='submit'])");
 
-  // Desactivar el botun
+  // Desactiva el botón de enviar inicialmente
   btnSubmit.disabled = true;
 
-  // Patrones
+  // Patrones de validación
   const patterns = {
     name: /^[A-Za-zÁáÉéÍíÓóÚúÑñ\s]{2,30}$/,
     lastName: /^[A-Za-zÁáÉéÍíÓóÚúÑñ\s]{2,30}$/,
     email: /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/,
     phone: /^[0-9]{10}$/,
-    password: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/,
+    password: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/,
   };
 
-  // Mensajeserror
+  // Mensajes de error
   const errorMessages = {
-    name: "El nombre no puede estar vacío y debe contener solo letras (2-30 caracteres).",
+    name: "El nombre debe contener solo letras (2-30 caracteres).",
     lastName: "El apellido debe tener entre 2 y 30 caracteres y solo letras.",
     email: "Ingrese un correo electrónico válido.",
     phone: "El teléfono debe tener 10 dígitos numéricos.",
-    password:
-      "La contraseña debe tener al menos 8 caracteres, una letra y un número.",
+    password: "La contraseña debe tener al menos 6 caracteres, una letra y un número.",
     "confirm-password": "Las contraseñas no coinciden.",
     acept: "Debe aceptar los términos y condiciones.",
     empty: "Este campo no puede estar vacío.",
+    emailExists: "Este correo electrónico ya está registrado.",
   };
 
-  // mostrar mensaje error
+  // Mostrar mensaje de error
   function showError(input, message) {
     clearError(input);
     const errorDiv = document.createElement("div");
@@ -42,19 +42,19 @@ document.addEventListener("DOMContentLoaded", () => {
     input.parentElement.appendChild(errorDiv);
   }
 
-  // limpiar errores
+  // Limpiar mensaje de error
   function clearError(input) {
     const errorDiv = input.parentElement.querySelector(".error-message");
     if (errorDiv) errorDiv.remove();
-    input.style.border = "1px solid #ccc";
+    input.style.border = "2px solid #27d604";
   }
 
-  // alidación campos
+  // Validar campo
   function validateField(input) {
     const inputType = input.id;
     const value = input.value.trim();
 
-    //estos son para los vacíos
+    // Verificar si el campo está vacío
     if (!value) {
       showError(
         input,
@@ -63,54 +63,76 @@ document.addEventListener("DOMContentLoaded", () => {
       return false;
     }
 
-    // este para termino y condicion
+    // Validar checkbox de términos
     if (inputType === "acept") {
       if (!input.checked) {
         showError(input, errorMessages[inputType]);
         return false;
       }
     }
-    // confirmación de contraseña
+
+    // Validar confirmación de contraseña
     else if (inputType === "confirm-password") {
       if (value !== document.getElementById("password").value) {
         showError(input, errorMessages[inputType]);
         return false;
       }
     }
-    // Validar otros campos con patrones
+
+    // Validar con patrones definidos
+    else if (patterns[inputType] && !patterns[inputType].test(value)) {
+      showError(input, errorMessages[inputType]);
+      return false;
+    }
 
     clearError(input);
     return true;
   }
 
-  // Habilitaboton enviar cuando usuario acepta
+  // Habilitar botón de enviar cuando el usuario acepte los términos
   aceptTerms.addEventListener("change", () => {
     btnSubmit.disabled = !aceptTerms.checked;
   });
 
-  // Validación reraltime
+  // Validación en tiempo real
   inputs.forEach((input) => {
     input.addEventListener("input", () => {
       validateField(input);
     });
   });
 
-  //envío del formulario
+  // Envío del formulario
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-
+  
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+  
     let isValid = true;
     inputs.forEach((input) => {
       if (!validateField(input)) isValid = false;
     });
-
+  
     if (!aceptTerms.checked) {
       showError(aceptTerms, errorMessages["acept"]);
       isValid = false;
     }
-
+  
+    const email = emailInput.value.trim();
+    const existingUsers = JSON.parse(localStorage.getItem("users")) || [];
+    const emailExists = existingUsers.some((user) => user.email === email);
+  
+    if (emailExists) {
+      showError(emailInput, errorMessages.emailExists);
+      isValid = false;
+    }
+  
     if (isValid) {
-      //objeto Jsno datos usuario
+      // Mostrar el fondo oscuro y el spinner
+      const overlay = document.getElementById("overlay");
+      overlay.style.display = "flex"; // Muestra el fondo oscuro y centra el spinner
+  
+      // Crear objeto con los datos del usuario
       const userData = {};
       inputs.forEach((input) => {
         if (input.id !== "confirm-password") {
@@ -118,22 +140,29 @@ document.addEventListener("DOMContentLoaded", () => {
             input.type === "checkbox" ? input.checked : input.value.trim();
         }
       });
-
-      // Metodo para encriptar contraseña
+  
+      // Encriptar la contraseña
       const encryptedPassword = await hashPassword(userData.password);
       userData.password = encryptedPassword;
-
-      //  usuarios existentes y array vacio
-      const existingUsers = JSON.parse(localStorage.getItem("users")) || [];
+  
+      // Simular un retraso de 2 segundos para el registro (opcional)
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+  
+      // Guardar en localStorage
       existingUsers.push(userData);
       localStorage.setItem("users", JSON.stringify(existingUsers));
+  
+      // Ocultar el fondo oscuro y el spinner
+      overlay.style.display = "none";
+  
+      // Mostrar mensaje de éxito
       const messageContainer = document.querySelector("#success-message");
-      messageContainer.innerHTML = `<p style="color: green; font-weight: bold;">Registro exitoso.</p>`;
       btnSubmit.disabled = true;
+  
+      // Redirigir a la página de inicio de sesión después de 3 segundos
       setTimeout(() => {
-        form.reset();
-        messageContainer.innerHTML = "";
-      }, 3000); //milisegundo
+        window.location.href = "logIn.html"; // Redirige a logIn.html
+      }, 3000);
     }
   });
 
@@ -147,5 +176,29 @@ document.addEventListener("DOMContentLoaded", () => {
       .map((byte) => byte.toString(16).padStart(2, "0"))
       .join("");
     return hashHex;
+  }
+
+  // Función para mostrar/ocultar contraseña
+  const passInputs = document.querySelectorAll('.pass');
+  const icons = document.querySelectorAll('.bx');
+
+  if (passInputs.length === icons.length) {
+    passInputs.forEach((input, index) => {
+      const icon = icons[index];
+
+      icon.addEventListener("click", () => {
+        if (input.type === "password") {
+          input.type = "text";
+          icon.classList.remove("bx-show-alt");
+          icon.classList.add("bx-hide");
+        } else {
+          input.type = "password";
+          icon.classList.add("bx-show-alt");
+          icon.classList.remove("bx-hide");
+        }
+      });
+    });
+  } else {
+    console.error("Número de inputs e iconos no coincide.");
   }
 });
