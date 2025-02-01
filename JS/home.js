@@ -2,19 +2,19 @@
 
 // Funcionalidad de carousel de publicidad página home
 const images = [
-    '/imagenes/products/Cebollas.jpg',
-    '/imagenes/products/Calabacion.jpg',
-    '/imagenes/products/Judias_verdes.jpg',
-    '/imagenes/products/Helado_artesanal.jpg',
-    '/imagenes/products/Alcachofas.jpg',
-    '/imagenes/products/Apio.jpg',
-    '/imagenes/products/Brocoli.jpg',
-    '/imagenes/products/leche_condensada.jpg',
-    '/imagenes/products/Leche_de_oveja.jpg',
-    '/imagenes/products/Pepino.jpg',
-    '/imagenes/products/carnes.jpeg',
-    '/imagenes/products/Zanahoria.jpg',
-    '/imagenes/products/Queso_manchego.jpg',
+    '../imagenes/products/Cebollas.jpg',
+    '../imagenes/products/Calabacion.jpg',
+    '../imagenes/products/Judias_verdes.jpg',
+    '../imagenes/products/Helado_artesanal.jpg',
+    '../imagenes/products/Alcachofas.jpg',
+    '../imagenes/products/Apio.jpg',
+    '../imagenes/products/Brocoli.jpg',
+    '../imagenes/products/leche_condensada.jpg',
+    '../imagenes/products/Leche_de_oveja.jpg',
+    '../imagenes/products/Pepino.jpg',
+    '../imagenes/products/carnes.jpeg',
+    '../imagenes/products/Zanahoria.jpg',
+    '../imagenes/products/Queso_manchego.jpg',
 ];
 
 const sliderMove = document.getElementById('slider-move');
